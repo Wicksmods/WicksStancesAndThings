@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: Wick's Stances and Things
+## Notes: Warrior loadout kit for World of Warcraft: Forever. Stance strip with a smart key, talents, pre-pull checklist, racials.
+## Author: Wick
+## Version: 0.1.0
+## Dependencies: WickCore
+## SavedVariables: WicksStancesSaved
+## X-Website: https://wicksmods.com
+## X-WickCore: WickCore-1.0
+
+Core.lua
+Stances.lua
+UI.lua
