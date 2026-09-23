@@ -13,6 +13,7 @@
 -- is the right answer anyway since the binding does not change mid-fight.
 
 local ADDON, ns = ...
+if not WickCore then return end   -- said once in Core.lua
 local Core = WickCore
 local Chrome, R = Core.Chrome, Core.Restrict
 local C = Chrome.Colors

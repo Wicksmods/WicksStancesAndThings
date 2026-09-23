@@ -12,6 +12,7 @@
 -- and not a secret value, so the kit stays inside Forever's addon rules.
 
 local ADDON, ns = ...
+if not WickCore then return end   -- said once in Core.lua
 local Core = WickCore
 local D = Core.Dialect
 
