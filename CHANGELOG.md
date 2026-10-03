@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Weapon swap keys, the same two as the paladin kit: one puts your
+  two-hander in your hands, the other your one-hander and shield. They
+  remember what you last wore, name pieces by item id, and fall back to
+  the best piece carried. `/wst pin` chooses by hand, `/wst swap off`
+  unloads them. Both sit on the strip after the smart key and are
+  bindable under Key Bindings.
 - The "Shield for Defensive" checklist row now sees the shield. It read the
   item lookup as the client's bare returns when WickCore hands back one table,
   so it always answered "does not apply" with a shield equipped.

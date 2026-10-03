@@ -61,13 +61,61 @@ local function ringColor(b, c)
     for _, t in ipairs(b.ring) do t:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
 end
 
+-- Each of the two swap keys. The icon is the piece that key puts in
+-- your hands; the fel edge means that set is already on.
+local function makeSwap(parent, which, name)
+    local b = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
+    b:SetSize(BTN, BTN)
+    b:RegisterForClicks("AnyUp", "AnyDown")
+    ns.swap:RegisterButton(which, b)
+    b.icon = b:CreateTexture(nil, "ARTWORK")
+    b.icon:SetPoint("TOPLEFT", 2, -2)
+    b.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    b.live = Chrome:Texture(b, "OVERLAY", C.fel)
+    b.live:SetPoint("BOTTOMLEFT", 1, 1)
+    b.live:SetPoint("BOTTOMRIGHT", -1, 1)
+    b.live:SetHeight(2)
+    b.live:Hide()
+    b.hl = b:CreateTexture(nil, "HIGHLIGHT")
+    b.hl:SetAllPoints()
+    b.hl:SetColorTexture(1, 1, 1, 0.10)
+    b:SetScript("OnEnter", function(s)
+        GameTooltip:SetOwner(s, "ANCHOR_TOP")
+        local faces = ns.swap:Faces()
+        local face = faces and faces[which]
+        GameTooltip:SetText(which == "twoHand" and "Two-hander" or "Sword and board", 1, 1, 1)
+        if not face then
+            GameTooltip:AddLine(tostring(ns.swap:Why(which) or "nothing to swap"), 0.5, 0.5, 0.5, true)
+        else
+            local D = Core.Dialect
+            local name = D.GetItemNameByID(face.id) or "that piece"
+            if which == "twoHand" then
+                GameTooltip:AddLine(name .. " to your main hand.", 0.8, 0.8, 0.8, true)
+            else
+                local weapon = D.GetItemNameByID(face.weapon) or "your one-hander"
+                GameTooltip:AddLine(weapon .. " and " .. name .. ".", 0.8, 0.8, 0.8, true)
+            end
+            if face.live then GameTooltip:AddLine("Already on.", 0.5, 0.5, 0.5, true) end
+            GameTooltip:AddLine("Costs a swing. /wst pin to choose a piece by hand.", 0.5, 0.5, 0.5, true)
+        end
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return b
+end
+
 function UI:BuildStrip()
     if self.strip then return self.strip end
     local db = ns.db and ns.db.profile
 
     local f = CreateFrame("Frame", "WicksStancesStrip", UIParent)
     self.strip = f
-    f:SetSize(PAD + (BTN + 2) * 3 + 1 + SMART_W + PAD, STRIP_H)
+    -- Said out loud at build time. A protected frame cannot be shown or
+    -- hidden once a fight starts, so whether the swap keys exist is
+    -- settled here; switching them off takes a reload.
+    local swapW = (ns.swap and ns.swap:Shown()) and (3 + (BTN + 2) * 2) or 0
+    f:SetSize(PAD + (BTN + 2) * 3 + 1 + SMART_W + swapW + PAD, STRIP_H)
     f:SetPoint("CENTER", 0, -200)
     f:SetFrameStrata("MEDIUM")
     f:SetMovable(true)
@@ -152,6 +200,21 @@ function UI:BuildStrip()
     end)
     smart:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
+    -- The two weapon swap keys, after the smart key.
+    if swapW > 0 then
+        -- Anchored to the strip by offset, never to the divider: a
+        -- protected button cannot be anchored to a texture.
+        local x = PAD + (BTN + 2) * 3 + 1 + SMART_W + 1
+        local sdiv = Chrome:Texture(f, "ARTWORK", C.border)
+        sdiv:SetPoint("TOP", f, "TOPLEFT", x, -2)
+        sdiv:SetPoint("BOTTOM", f, "BOTTOMLEFT", x, 2)
+        sdiv:SetWidth(1)
+        f.swapTwo = makeSwap(f, "twoHand", "WicksStancesTwoHandButton")
+        f.swapTwo:SetPoint("LEFT", f, "LEFT", x + 3, 0)
+        f.swapShield = makeSwap(f, "shield", "WicksStancesShieldButton")
+        f.swapShield:SetPoint("LEFT", f, "LEFT", x + 3 + BTN + 2, 0)
+    end
+
     -- Right-click anywhere on the strip opens the kit, matching the other
     -- kits' launcher. The stance buttons are secure, so their right-click
     -- goes through the strip underneath rather than through them.
@@ -229,6 +292,24 @@ function UI:Refresh()
     else
         f.smartNote:SetText("/wst bind <ability>")
         tint(f.smartNote, C.muted)
+    end
+    self:RefreshSwap()
+end
+
+-- Icons and the live edge only. Nothing here shows, hides or moves a
+-- protected frame, so it is safe to run mid-fight.
+function UI:RefreshSwap()
+    local f = self.strip
+    if not (f and f.swapTwo) then return end
+    local faces = ns.swap and ns.swap:Faces()
+    for which, b in pairs({ twoHand = f.swapTwo, shield = f.swapShield }) do
+        local face = faces and faces[which]
+        b.icon:SetTexture(face and face.icon or QUESTION)
+        -- A set it cannot make goes grey rather than disappearing, so
+        -- the strip does not change shape on you.
+        b.icon:SetDesaturated(face == nil)
+        b.icon:SetAlpha(face and 1 or 0.35)
+        b.live:SetShown(face ~= nil and face.live == true)
     end
 end
 

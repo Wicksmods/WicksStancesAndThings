@@ -46,13 +46,21 @@ local PROFILE_DEFAULTS = {
     stripLocked  = true,
     strip        = {},
     kitWindow    = {},
+    swap         = true,   -- keep the two weapon swap keys loaded
+    pinned       = {},     -- twoHand / oneHand / shield -> itemID a key should always reach for
+}
+
+-- What was last worn, per character: the exact pieces the swap keys
+-- bring back. Gear is the character's own, whatever profile is in use.
+local CHAR_DEFAULTS = {
+    sets = {},
 }
 
 local A = Core:NewAddon("WicksStancesAndThings", {
     title    = "Wick's Stances and Things",
     version  = ns.version,
     savedVar = "WicksStancesSaved",
-    defaults = { profile = PROFILE_DEFAULTS, global = {} },
+    defaults = { profile = PROFILE_DEFAULTS, char = CHAR_DEFAULTS, global = {} },
 })
 ns.A = A
 
@@ -97,6 +105,7 @@ function A:OnInitialize()
     self.db:On("OnProfileChanged", function()
         if ns.UI and ns.UI.ApplyStripVisibility then ns.UI:ApplyStripVisibility() end
         if ns.UI and ns.UI.UpdateMacros then ns.UI:UpdateMacros() end
+        if ns.swap and ns.swap.Update then ns.swap:Update() end
     end)
 
     Core.Cooldowns:New(self, { key = "cooldownBar" })
@@ -143,6 +152,7 @@ function A:OnEnable()
         self:Print("loaded. /wst for the stance strip, /wst kit for talents and checklist.")
     end
     if ns.Stances and ns.Stances.Init then ns.Stances:Init() end
+    if ns.swap and ns.swap.Init then ns.swap:Init() end
     if ns.UI and ns.UI.Init then ns.UI:Init() end
 
     self:RegisterLauncher({
@@ -173,6 +183,7 @@ function A:OnEnable()
             :format(db.smartAbility or "Charge"), y)
         y = O:Button(page, "Open strip", function() ns.UI:Toggle() end, y, 100)
         y = O:Button(page, "Open kit", function() addon.kit:Toggle() end, y, 100)
+        if ns.swap and ns.isWarrior then y = ns.swap:OptionRow(page, y - 6) end
         if addon.cooldowns then y = addon.cooldowns:OptionRow(page, y - 6) end
         y = O:ProfileSection(page, addon, y - 8)
     end)
@@ -184,6 +195,8 @@ _G["BINDING_NAME_CLICK WicksStancesSmartButton:LeftButton"] = "Smart stance abil
 _G["BINDING_NAME_CLICK WicksStancesButton1:LeftButton"] = "Battle Stance"
 _G["BINDING_NAME_CLICK WicksStancesButton2:LeftButton"] = "Defensive Stance"
 _G["BINDING_NAME_CLICK WicksStancesButton3:LeftButton"] = "Berserker Stance"
+_G["BINDING_NAME_CLICK WicksStancesTwoHandButton:LeftButton"] = "Two-hander"
+_G["BINDING_NAME_CLICK WicksStancesShieldButton:LeftButton"] = "Sword and board"
 BINDING_NAME_WICKSSTANCES_TOGGLE = "Toggle stance strip"
 function WicksStancesAndThings_Toggle() if ns.UI then ns.UI:Toggle() end end
 
@@ -207,6 +220,19 @@ A:RegisterSlash(function(_, msg)
     end
     if lower == "unlock" or lower == "move" then ns.UI:SetStripLocked(false) return end
     if lower == "lock" then ns.UI:SetStripLocked(true) return end
+
+    if lower == "swap" or lower:match("^swap%s") then
+        if ns.swap and ns.isWarrior then
+            ns.swap:Command(msg:match("^%a+%s*(.*)$"), function(line) A:Print(line) end)
+        else A:Print("the weapon swap keys are warrior only") end
+        return
+    end
+    if lower:match("^pin") then
+        if ns.swap and ns.isWarrior then
+            ns.swap:Pin(msg:match("^%a+%s*(.*)$"), function(line) A:Print(line) end)
+        else A:Print("the weapon swap keys are warrior only") end
+        return
+    end
 
     if lower:match("^bind") then
         local want = msg:match("^%a+%s+(.+)$")
@@ -237,8 +263,9 @@ A:RegisterSlash(function(_, msg)
             cur and ns.Stances:NameOf(cur) or "none"))
         A:Print(("smart key: %s"):format(db.smartAbility or "none"))
         A:Print("macro: " .. (ns.Stances:MacroFor(db.smartAbility):gsub("\n", " | ")))
+        if ns.swap and ns.isWarrior then ns.swap:Report(function(line) A:Print(line) end) end
         return
     end
 
-    A:Print("commands: show | strip | lock | unlock | kit | options | bind <ability> | cd | status")
+    A:Print("commands: show | strip | lock | unlock | kit | options | bind <ability> | swap [on|off] | pin <2h|1h|shield> [link|clear] | cd | status")
 end, "/wst", "/wstances")

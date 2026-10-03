@@ -10,8 +10,8 @@ one key that reaches for an ability and the stance it needs.
 
 ## What it does
 
-**Stance strip.** One 30px row: Battle, Defensive, Berserker, and a smart
-key. The stance you are in is ringed in fel green; stances you have not
+**Stance strip.** One 30px row: Battle, Defensive, Berserker, a smart
+key, and the two weapon swap keys. The stance you are in is ringed in fel green; stances you have not
 learned yet are dim. Shift-drag moves it even when locked.
 
 **The smart key.** Bind an ability with `/wst bind <ability>`. The key
@@ -21,6 +21,19 @@ game applies a stance change and a cast from the same press as the change
 only, and pretending otherwise with a castsequence just makes it
 unpredictable. Sixteen abilities are known by name; anything else is cast
 where you stand.
+
+**Weapon swap keys.** Two keys, tied to nothing. One puts your
+two-hander in your hands, the other your one-hander and shield. They
+remember what you last wore, so a new weapon needs nothing done to it
+beyond putting it on once, and they name every piece by item id so two
+swords called the same thing cannot pick the wrong one. With nothing
+remembered they take the best piece you carry; `/wst pin 2h` with an
+item link makes a key reach for one piece and no other. Each macro
+names where the set should end up rather than describing a move, so
+pressing a key twice does nothing the second time. The strip shows the
+piece each key puts on, with a mark on the set you are already wearing.
+
+Worth knowing before you bind them: swapping resets your swing timer.
 
 **Pre-pull checklist.** A shout up, in a stance, a weapon equipped, and a
 shield for Defensive when you carry one. Read out of combat, from your
@@ -36,6 +49,8 @@ every other kit.
 | `/wst` | show or hide the stance strip |
 | `/wst kit` | talents and the pre-pull checklist |
 | `/wst bind <ability>` | set the smart key |
+| `/wst swap on|off` | keep the swap keys loaded |
+| `/wst pin <2h|1h|shield> [link|clear]` | choose a piece by hand |
 | `/wst lock` / `/wst unlock` | the strip's position |
 | `/wst cd` | the cooldown bar |
 | `/wst options` | everything above, with switches |

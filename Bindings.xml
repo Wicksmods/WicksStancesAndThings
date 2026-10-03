@@ -3,6 +3,8 @@
     <Binding name="CLICK WicksStancesButton1:LeftButton" category="ADDONS"/>
     <Binding name="CLICK WicksStancesButton2:LeftButton" category="ADDONS"/>
     <Binding name="CLICK WicksStancesButton3:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK WicksStancesTwoHandButton:LeftButton" category="ADDONS"/>
+    <Binding name="CLICK WicksStancesShieldButton:LeftButton" category="ADDONS"/>
     <Binding name="WICKSSTANCES_TOGGLE" category="ADDONS">
         if WicksStancesAndThings_Toggle then WicksStancesAndThings_Toggle() end
     </Binding>

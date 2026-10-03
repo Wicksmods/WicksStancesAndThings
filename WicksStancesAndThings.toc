@@ -10,4 +10,5 @@
 
 Core.lua
 Stances.lua
+Swap.lua
 UI.lua
