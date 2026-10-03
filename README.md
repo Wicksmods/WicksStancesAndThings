@@ -51,8 +51,9 @@ Rage is deliberately absent for that reason.
 ## The suite
 
 Wick's Bags, Wick's Comforts, Wick's Gear, and one kit per class: Stances
-(warrior), Totems (shaman), Demons (warlock), Forms (druid), Beasts
-(hunter), Poisons (rogue), Conjures (mage). <https://wicksmods.com>
+(warrior), Seals (paladin), Totems (shaman), Demons (warlock), Forms
+(druid), Beasts (hunter), Poisons (rogue), Conjures (mage).
+<https://wicksmods.com>
 
 ## Compatibility
 
