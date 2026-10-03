@@ -1,11 +1,12 @@
 -- Wick's Stances and Things
 -- UI.lua: the stance strip.
 --
--- One 30px row: three stance buttons and a smart key. The stance you are
--- in is lit in fel green, the ones you have not learned yet are dim. The
--- smart key carries whichever ability you bound to it and shows the
--- stance that ability wants, so you can see at a glance whether pressing
--- it will move you or swing.
+-- One 30px row: three stance buttons, a smart key and a kick key. The
+-- stance you are in is lit in fel green, the ones you have not learned
+-- yet are dim. The smart key carries whichever ability you bound to it
+-- and shows the stance that ability wants, so you can see at a glance
+-- whether pressing it will move you or swing. The kick key shows the
+-- interrupt a press uses now, with its cooldown.
 --
 -- Every button is a SecureActionButton with macro text, which is the only
 -- way an addon may cast anything. Macro text is rewritten out of combat
@@ -27,6 +28,7 @@ local DIM = { 0.35, 0.33, 0.40, 1 }
 local STRIP_H = 30
 local BTN     = 26
 local SMART_W = 116
+local KICK_W  = 3 + BTN + 2   -- divider gap, the key, gap
 local PAD     = 4
 
 local function tint(fs, c) fs:SetTextColor(c[1], c[2], c[3], c[4] or 1) end
@@ -115,7 +117,7 @@ function UI:BuildStrip()
     -- hidden once a fight starts, so whether the swap keys exist is
     -- settled here; switching them off takes a reload.
     local swapW = (ns.swap and ns.swap:Shown()) and (3 + (BTN + 2) * 2) or 0
-    f:SetSize(PAD + (BTN + 2) * 3 + 1 + SMART_W + swapW + PAD, STRIP_H)
+    f:SetSize(PAD + (BTN + 2) * 3 + 1 + SMART_W + KICK_W + swapW + PAD, STRIP_H)
     f:SetPoint("CENTER", 0, -200)
     f:SetFrameStrata("MEDIUM")
     f:SetMovable(true)
@@ -200,11 +202,44 @@ function UI:BuildStrip()
     end)
     smart:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    -- The two weapon swap keys, after the smart key.
+    -- The kick key, after the smart key. Anchored to the strip by
+    -- offset, as the swap keys are: a protected button cannot be
+    -- anchored to a texture.
+    local kx = PAD + (BTN + 2) * 3 + 1 + SMART_W + 1
+    local kdiv = Chrome:Texture(f, "ARTWORK", C.border)
+    kdiv:SetPoint("TOP", f, "TOPLEFT", kx, -2)
+    kdiv:SetPoint("BOTTOM", f, "BOTTOMLEFT", kx, 2)
+    kdiv:SetWidth(1)
+    local kick = makeSecure(f, "WicksStancesKickButton")
+    kick:SetSize(BTN, BTN)
+    kick:SetPoint("LEFT", f, "LEFT", kx + 3, 0)
+    kick.cd = CreateFrame("Cooldown", nil, kick, "CooldownFrameTemplate")
+    kick.cd:SetAllPoints(kick.icon)
+    f.kick = kick
+    kick:SetScript("OnEnter", function(s)
+        GameTooltip:SetOwner(s, "ANCHOR_TOP")
+        GameTooltip:SetText("Kick", 1, 1, 1)
+        local k = UI:KickState()
+        if not k.spell then
+            GameTooltip:AddLine("Needs a shield on, or Berserker Stance learned.", 0.6, 0.6, 0.6, true)
+        elseif k.swaps then
+            GameTooltip:AddLine("No shield on: one press to Berserker, another to Pummel.", 0.85, 0.65, 0.25, true)
+        elseif not k.known then
+            GameTooltip:AddLine(("%s is not learned yet."):format(k.spell), 0.6, 0.6, 0.6, true)
+        else
+            GameTooltip:AddLine(("One press: %s."):format(k.spell), C.fel[1], C.fel[2], C.fel[3], true)
+        end
+        GameTooltip:AddLine("Hits the enemy under your mouse, else your focus, else your target, else the one you face. Your target and focus never change.", 0.5, 0.5, 0.5, true)
+        GameTooltip:AddLine("One press is one interrupt on one enemy. Bind it under Key Bindings, AddOns.", 0.5, 0.5, 0.5, true)
+        GameTooltip:Show()
+    end)
+    kick:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    -- The two weapon swap keys, after the kick key.
     if swapW > 0 then
         -- Anchored to the strip by offset, never to the divider: a
         -- protected button cannot be anchored to a texture.
-        local x = PAD + (BTN + 2) * 3 + 1 + SMART_W + 1
+        local x = kx + KICK_W
         local sdiv = Chrome:Texture(f, "ARTWORK", C.border)
         sdiv:SetPoint("TOP", f, "TOPLEFT", x, -2)
         sdiv:SetPoint("BOTTOM", f, "BOTTOMLEFT", x, 2)
@@ -252,6 +287,11 @@ function UI:UpdateMacros()
     local m = ns.Stances:MacroFor(ability)
     f.smart:SetAttribute("macrotext", m)
     f.smart:SetAttribute("macrotext1", m)
+    -- The kick key's text does not change with stance or hands; its
+    -- conditions read those live, on every press.
+    local k = ns.Stances:KickMacro()
+    f.kick:SetAttribute("macrotext", k)
+    f.kick:SetAttribute("macrotext1", k)
     self:Refresh()
 end
 
@@ -296,10 +336,51 @@ function UI:Refresh()
     self:RefreshSwap()
 end
 
+-- Whether a shield is in the off hand, the same read the swap keys make.
+function UI:ShieldOn()
+    local h = ns.swap and ns.swap.Hands and ns.swap:Hands()
+    return (h and h.offKind == "shield") and true or false
+end
+
+-- What a kick press does now: the spell, whether it only changes stance,
+-- its icon, and whether the client knows the spell.
+function UI:KickState()
+    local spell, swaps = ns.Stances:KickNow(self:ShieldOn())
+    local tex
+    if spell then
+        if swaps then tex = ns.Stances:IconOf(ns.Stances.BERSERKER)
+        else tex = Core.Dialect.GetSpellTexture(spell) end
+    end
+    return { spell = spell, swaps = swaps, icon = tex, known = tex ~= nil }
+end
+
+-- The kick key's face: what a press does now, and its cooldown. Method
+-- calls on our own regions only, so it is safe mid-fight. The cooldown's
+-- times may be secret there; they go straight to the swipe, unread.
+function UI:RefreshKick()
+    local f = self.strip
+    local b = f and f.kick
+    if not b then return end
+    local k = self:KickState()
+    local ready = k.spell ~= nil and not k.swaps and k.known
+    b.icon:SetTexture(k.icon or QUESTION)
+    b.icon:SetDesaturated(not k.known)
+    b.icon:SetAlpha(k.known and 1 or 0.35)
+    ringColor(b, ready and C.fel or C.border)
+    local cd = ready and Core.Dialect.GetSpellCooldown(k.spell) or nil
+    if cd and cd.start ~= nil and cd.duration ~= nil then
+        pcall(b.cd.SetCooldown, b.cd, cd.start, cd.duration, cd.modRate)
+    elseif b.cd.Clear then
+        b.cd:Clear()
+    end
+end
+
 -- Icons and the live edge only. Nothing here shows, hides or moves a
 -- protected frame, so it is safe to run mid-fight.
 function UI:RefreshSwap()
     local f = self.strip
+    -- The kick key reads the same hands, so it is redrawn with them.
+    self:RefreshKick()
     if not (f and f.swapTwo) then return end
     local faces = ns.swap and ns.swap:Faces()
     for which, b in pairs({ twoHand = f.swapTwo, shield = f.swapShield }) do
@@ -350,8 +431,11 @@ function UI:Init()
     self:ApplyStripVisibility()
     -- Macro text could not be written while the character was in combat
     -- at login; write it the moment that clears.
-    ns.RegisterEvents({ "PLAYER_REGEN_ENABLED" })
+    ns.RegisterEvents({ "PLAYER_REGEN_ENABLED", "SPELL_UPDATE_COOLDOWN" })
     ns:On("PLAYER_REGEN_ENABLED", function()
         if UI.macrosStale then UI:UpdateMacros() end
+    end)
+    ns:On("SPELL_UPDATE_COOLDOWN", function()
+        if UI.strip and UI.strip:IsShown() then UI:RefreshKick() end
     end)
 end

@@ -11,7 +11,7 @@ one key that reaches for an ability and the stance it needs.
 ## What it does
 
 **Stance strip.** One 30px row: Battle, Defensive, Berserker, a smart
-key, and the two weapon swap keys. The stance you are in is ringed in fel green; stances you have not
+key, a kick key, and the two weapon swap keys. The stance you are in is ringed in fel green; stances you have not
 learned yet are dim. Shift-drag moves it even when locked.
 
 **The smart key.** Bind an ability with `/wst bind <ability>`. The key
@@ -21,6 +21,16 @@ game applies a stance change and a cast from the same press as the change
 only, and pretending otherwise with a castsequence just makes it
 unpredictable. Sixteen abilities are known by name; anything else is cast
 where you stand.
+
+**The kick key.** One key for the interrupt that fits your stance and
+your hands. Pummel in Berserker; Shield Bash in Battle or Defensive with a
+shield on; with no shield on there, the first press takes you to
+Berserker and the second Pummels. It hits the enemy under your mouse,
+else your focus, else your target, else the enemy you are facing, and it
+never changes your target or your focus. Its icon shows what a press uses
+right now, with the cooldown. One press is one interrupt on one enemy: no
+key can find who is casting for you, so point at them and press. Bind it
+under Key Bindings, AddOns.
 
 **Weapon swap keys.** Two keys, tied to nothing. One puts your
 two-hander in your hands, the other your one-hander and shield. They

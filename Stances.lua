@@ -151,6 +151,65 @@ function Stances:SwapMacro(index)
     return ("#showtooltip %s\n/cast %s"):format(s.name, s.name)
 end
 
+-- ============================================================
+-- The kick key
+-- ============================================================
+-- One key for the interrupt that fits the stance and the hands you are
+-- in: Pummel in Berserker, Shield Bash in Battle or Defensive with a
+-- shield on, and with no shield there a first press into Berserker and a
+-- second to Pummel, the same two-press rule as the smart key.
+--
+-- Who it hits, in order: the enemy under your mouse, your focus, your
+-- target, then the enemy you are facing (the soft target). Your target
+-- comes before the soft target so a kick never leaves the enemy you chose
+-- for one you only happen to face. Nothing here targets or focuses
+-- anything: the key casts at a unit and leaves your target and focus as
+-- they were.
+--
+-- One press is one interrupt on one enemy. No macro can see who is
+-- casting, and an addon cannot change who a key aims at mid-fight, so
+-- the key goes where you point; nameplate castbars show where to point.
+
+Stances.KICK_TARGETS = { "@mouseover,harm,nodead", "@focus,harm,nodead", "harm,nodead", "@softenemy,harm,nodead" }
+
+-- The client's own name for shields, which [equipped:] is matched
+-- against, so the condition holds in any language.
+local function shieldsName()
+    local E = rawget(_G, "Enum")
+    local info = C_Item and C_Item.GetItemSubClassInfo
+    if info and E and E.ItemClass and E.ItemArmorSubclass and E.ItemArmorSubclass.Shield then
+        local ok, name = pcall(info, E.ItemClass.Armor, E.ItemArmorSubclass.Shield)
+        if ok and type(name) == "string" and name ~= "" then return name end
+    end
+    return "Shields"
+end
+Stances.ShieldsName = shieldsName
+
+local function kickLine(spell, gate)
+    local parts = {}
+    for _, t in ipairs(Stances.KICK_TARGETS) do parts[#parts + 1] = "[" .. gate .. "," .. t .. "]" end
+    return "/cast " .. table.concat(parts) .. " " .. spell
+end
+
+function Stances:KickMacro()
+    local shields = shieldsName()
+    return table.concat({
+        kickLine("Pummel", "stance:" .. self.BERSERKER),
+        kickLine("Shield Bash", ("nostance:%d,equipped:%s"):format(self.BERSERKER, shields)),
+        ("/cast [nostance:%d,noequipped:%s] %s"):format(self.BERSERKER, shields, SPELL[self.BERSERKER].name),
+    }, "\n")
+end
+
+-- What one press does right now: the spell, and whether that press only
+-- changes stance. nil when it can do nothing (no shield on, and no
+-- Berserker Stance learned yet).
+function Stances:KickNow(shieldOn)
+    if self:Current() == self.BERSERKER then return "Pummel", false end
+    if shieldOn then return "Shield Bash", false end
+    if self:HasStance(self.BERSERKER) then return SPELL[self.BERSERKER].name, true end
+    return nil
+end
+
 function Stances:Init()
     if self.inited then return end
     self.inited = true

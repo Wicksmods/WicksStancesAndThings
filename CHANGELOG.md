@@ -1,5 +1,18 @@
 # Wick's Stances and Things - Changelog
 
+## 0.9.2 (unreleased)
+
+- A kick key on the strip, bindable under Key Bindings: the interrupt
+  that fits your stance and your hands, at whoever you point at. Pummel
+  in Berserker; Shield Bash in Battle or Defensive with a shield on; with
+  no shield on there, the first press takes you to Berserker and the
+  second Pummels. It hits the enemy under your mouse, else your focus,
+  else your target, else the enemy you are facing, and never changes your
+  target or your focus. Its icon shows what a press uses now, with the
+  cooldown. One press is still one interrupt on one enemy: no key can
+  find who is casting for you, so point at them (the nameplate castbars
+  show who) and press.
+
 ## 0.9.1 - 2026-10-03
 
 - Weapon swap keys, the same two as the paladin kit: one puts your

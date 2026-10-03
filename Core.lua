@@ -181,6 +181,8 @@ function A:OnEnable()
         y = O:Heading(page, "The smart key", y - 6)
         y = O:Note(page, ("Set to %s. Change it with /wst bind <ability>. The key puts you in the stance that ability needs and then uses it, so from the wrong stance it takes two presses: the game will not change stance and swing off one. From the right stance it is a single press.")
             :format(db.smartAbility or "Charge"), y)
+        y = O:Heading(page, "The kick key", y - 6)
+        y = O:Note(page, "Pummel in Berserker, Shield Bash in Battle or Defensive with a shield on. With no shield on in Battle or Defensive, the first press takes you to Berserker and the second Pummels. It hits the enemy under your mouse, else your focus, else your target, else the one you are facing, and never changes your target or focus. One press is one interrupt on one enemy. Bind it under Key Bindings, AddOns.", y)
         y = O:Button(page, "Open strip", function() ns.UI:Toggle() end, y, 100)
         y = O:Button(page, "Open kit", function() addon.kit:Toggle() end, y, 100)
         if ns.swap and ns.isWarrior then y = ns.swap:OptionRow(page, y - 6) end
@@ -192,6 +194,7 @@ end
 -- Keybinding entry points
 BINDING_HEADER_WICKSSTANCES = "Wick's Stances and Things"
 _G["BINDING_NAME_CLICK WicksStancesSmartButton:LeftButton"] = "Smart stance ability"
+_G["BINDING_NAME_CLICK WicksStancesKickButton:LeftButton"] = "Kick (Pummel or Shield Bash)"
 _G["BINDING_NAME_CLICK WicksStancesButton1:LeftButton"] = "Battle Stance"
 _G["BINDING_NAME_CLICK WicksStancesButton2:LeftButton"] = "Defensive Stance"
 _G["BINDING_NAME_CLICK WicksStancesButton3:LeftButton"] = "Berserker Stance"
@@ -263,6 +266,9 @@ A:RegisterSlash(function(_, msg)
             cur and ns.Stances:NameOf(cur) or "none"))
         A:Print(("smart key: %s"):format(db.smartAbility or "none"))
         A:Print("macro: " .. (ns.Stances:MacroFor(db.smartAbility):gsub("\n", " | ")))
+        local spell, swaps = ns.Stances:KickNow(ns.UI and ns.UI.ShieldOn and ns.UI:ShieldOn())
+        A:Print(("kick key: %s"):format(not spell and "nothing yet (no shield on, no Berserker)"
+            or swaps and "swaps to Berserker first" or spell))
         if ns.swap and ns.isWarrior then ns.swap:Report(function(line) A:Print(line) end) end
         return
     end
