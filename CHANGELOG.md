@@ -1,12 +1,9 @@
 # Wick's Stances and Things - Changelog
 
-## Unreleased
+## 0.9.2 (unreleased)
 
 - Each key on the strip shows its keybinding in the corner, shortened
   the way action bars do it, and follows a rebind straight away.
-
-## 0.9.2 (unreleased)
-
 - A kick key on the strip, bindable under Key Bindings: the interrupt
   that fits your stance and your hands, at whoever you point at. Pummel
   in Berserker; Shield Bash in Battle or Defensive with a shield on; with
