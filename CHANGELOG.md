@@ -1,6 +1,6 @@
 # Wick's Stances and Things - Changelog
 
-## Unreleased
+## 0.9.1 - 2026-10-03
 
 - Weapon swap keys, the same two as the paladin kit: one puts your
   two-hander in your hands, the other your one-hander and shield. They
