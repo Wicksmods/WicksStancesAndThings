@@ -124,9 +124,13 @@ function A:OnInitialize()
                 if not f then return nil end
                 local id = f("player", 17)
                 if not id then return nil end
-                local _, _, _, _, _, classID, subClassID = D.GetItemInfoInstant(id)
-                if classID ~= 4 then return nil end
-                return subClassID == 6
+                -- Dialect hands back one table, not the client's seven
+                -- returns, and the equip slot says shield plainly.
+                local info = D.GetItemInfoInstant(id)
+                if not info then return nil end
+                if info.equipLoc == "INVTYPE_SHIELD" then return true end
+                if info.equipLoc == "INVTYPE_HOLDABLE" then return false end
+                return nil
             end },
         },
     })

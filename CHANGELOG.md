@@ -1,5 +1,11 @@
 # Wick's Stances and Things - Changelog
 
+## Unreleased
+
+- The "Shield for Defensive" checklist row now sees the shield. It read the
+  item lookup as the client's bare returns when WickCore hands back one table,
+  so it always answered "does not apply" with a shield equipped.
+
 ## 0.9.0
 
 One version across the suite for the Forever beta. Every addon carried a
