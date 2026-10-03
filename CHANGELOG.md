@@ -1,5 +1,10 @@
 # Wick's Stances and Things - Changelog
 
+## Unreleased
+
+- Each key on the strip shows its keybinding in the corner, shortened
+  the way action bars do it, and follows a rebind straight away.
+
 ## 0.9.2 (unreleased)
 
 - A kick key on the strip, bindable under Key Bindings: the interrupt

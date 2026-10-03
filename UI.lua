@@ -63,6 +63,57 @@ local function ringColor(b, c)
     for _, t in ipairs(b.ring) do t:SetColorTexture(c[1], c[2], c[3], c[4] or 1) end
 end
 
+-- ============================================================
+-- Hotkey labels
+-- ============================================================
+-- The bound key in the corner of each button, shortened the way action
+-- bars do it: SHIFT-1 reads S1, a mouse button M4, the numpad N. The
+-- same table as the paladin kit's strip.
+
+local SHORT = {
+    { "SHIFT%-", "S" }, { "CTRL%-", "C" }, { "ALT%-", "A" }, { "META%-", "M" },
+    { "BUTTON", "M" }, { "MOUSEWHEELUP", "MwU" }, { "MOUSEWHEELDOWN", "MwD" },
+    { "NUMPADPLUS", "N+" }, { "NUMPADMINUS", "N-" }, { "NUMPADMULTIPLY", "N*" },
+    { "NUMPADDIVIDE", "N/" }, { "NUMPADDECIMAL", "N." }, { "NUMPAD", "N" },
+    { "SPACE", "Sp" }, { "BACKSPACE", "Bs" }, { "CAPSLOCK", "Cp" },
+    { "PAGEUP", "PU" }, { "PAGEDOWN", "PD" }, { "INSERT", "Ins" }, { "DELETE", "Del" },
+    { "HOME", "Hm" }, { "END", "End" }, { "TAB", "Tab" }, { "ENTER", "Ent" },
+}
+
+local function shortKey(key)
+    if type(key) ~= "string" or key == "" then return "" end
+    for _, r in ipairs(SHORT) do key = key:gsub(r[1], r[2]) end
+    return key
+end
+
+local function addHotkey(b)
+    b.hotkey = Chrome:Text(b, 9, C.text, "OUTLINE")
+    b.hotkey:SetPoint("TOPRIGHT", -2, -2)
+    b.hotkey:SetJustifyH("RIGHT")
+    b.hotkey:SetWordWrap(false)
+end
+
+-- Every bindable key on the strip, in strip order.
+function UI:HotkeyButtons()
+    local f, out = self.strip, {}
+    if not f then return out end
+    for i = 1, 3 do if f.stance and f.stance[i] then out[#out + 1] = f.stance[i] end end
+    for _, b in ipairs({ f.smart, f.kick, f.swapTwo, f.swapShield }) do
+        if b then out[#out + 1] = b end
+    end
+    return out
+end
+
+function UI:RefreshHotkeys()
+    local get = rawget(_G, "GetBindingKey")
+    for _, b in ipairs(self:HotkeyButtons()) do
+        if b.hotkey then
+            local key = get and get("CLICK " .. b:GetName() .. ":LeftButton")
+            b.hotkey:SetText(shortKey(key))
+        end
+    end
+end
+
 -- Each of the two swap keys. The icon is the piece that key puts in
 -- your hands; the fel edge means that set is already on.
 local function makeSwap(parent, which, name)
@@ -250,6 +301,9 @@ function UI:BuildStrip()
         f.swapShield:SetPoint("LEFT", f, "LEFT", x + 3 + BTN + 2, 0)
     end
 
+    for _, b in ipairs(UI:HotkeyButtons()) do addHotkey(b) end
+    self:RefreshHotkeys()
+
     -- Right-click anywhere on the strip opens the kit, matching the other
     -- kits' launcher. The stance buttons are secure, so their right-click
     -- goes through the strip underneath rather than through them.
@@ -431,7 +485,9 @@ function UI:Init()
     self:ApplyStripVisibility()
     -- Macro text could not be written while the character was in combat
     -- at login; write it the moment that clears.
-    ns.RegisterEvents({ "PLAYER_REGEN_ENABLED", "SPELL_UPDATE_COOLDOWN" })
+    ns.RegisterEvents({ "PLAYER_REGEN_ENABLED", "SPELL_UPDATE_COOLDOWN", "UPDATE_BINDINGS" })
+    -- A key rebound under Key Bindings shows on the strip straight away.
+    ns:On("UPDATE_BINDINGS", function() UI:RefreshHotkeys() end)
     ns:On("PLAYER_REGEN_ENABLED", function()
         if UI.macrosStale then UI:UpdateMacros() end
     end)
