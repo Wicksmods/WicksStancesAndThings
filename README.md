@@ -1,7 +1,7 @@
 # Wick's Stances and Things
 
 The warrior kit for **World of Warcraft: Forever**, built on
-[WickCore](https://github.com/Wicksmods/WickCore).
+[WickCore](https://github.com/Wicks-mods/WickCore).
 
 A warrior's loadout is a stance. Half the class is locked behind the wrong
 one, and the cost of that is a second spent remembering which. This kit
@@ -86,4 +86,4 @@ World of Warcraft: Forever, 1.60.x, Interface 16001. Requires WickCore.
 
 ## License
 
-MIT for code (see [LICENSE](LICENSE)). Brand chrome and the "Wick's" wordmark are trademarked, see [TRADEMARK.md](https://github.com/Wicksmods/WickSuite/blob/main/TRADEMARK.md). Racial data from [talentsforever.com](https://talentsforever.com) (CC BY 4.0) via WickCore.
+MIT for code (see [LICENSE](LICENSE)). Brand chrome and the "Wick's" wordmark are trademarked, see [TRADEMARK.md](https://github.com/Wicks-mods/WickSuite/blob/main/TRADEMARK.md). Racial data from [talentsforever.com](https://talentsforever.com) (CC BY 4.0) via WickCore.
